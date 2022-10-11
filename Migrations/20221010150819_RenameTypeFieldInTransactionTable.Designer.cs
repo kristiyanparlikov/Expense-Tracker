@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ExpenseTracker.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20221010150819_RenameTypeFieldInTransactionTable")]
+    partial class RenameTypeFieldInTransactionTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -45,18 +47,13 @@ namespace ExpenseTracker.Migrations
                     b.Property<double>("Amount")
                         .HasColumnType("float");
 
-                    b.Property<string>("CategoryId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<Guid>("CategoryGuid")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("Date")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -67,6 +64,8 @@ namespace ExpenseTracker.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Guid");
+
+                    b.HasIndex("CategoryGuid");
 
                     b.HasIndex("UserGuid");
 
@@ -109,9 +108,17 @@ namespace ExpenseTracker.Migrations
 
             modelBuilder.Entity("Transaction", b =>
                 {
+                    b.HasOne("Category", "Category")
+                        .WithMany()
+                        .HasForeignKey("CategoryGuid")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("User", null)
                         .WithMany("Transactions")
                         .HasForeignKey("UserGuid");
+
+                    b.Navigation("Category");
                 });
 
             modelBuilder.Entity("User", b =>
